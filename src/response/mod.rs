@@ -6,7 +6,7 @@ pub mod builder;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Response<B> {
     version: Version,        // -------|
-    status_code: StatusCode, // |---------- HEAD
+    status_code: StatusCode, //        |---------- HEAD
     headers: HeaderMap,
     body: Option<B>,
 }

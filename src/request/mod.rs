@@ -5,8 +5,8 @@ pub mod builder;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Request<B> {
-    method: Method,   //   --------------|
-    uri: Uri,         //         --------------|--- HEAD
+    method: Method,   // --------------|
+    uri: Uri,         // --------------|--- HEAD
     version: Version, // --------------|
     headers: HeaderMap,
     body: Option<B>,
