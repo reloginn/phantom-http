@@ -8,13 +8,12 @@ impl Scheme {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
         Self(std::sync::Arc::from(value.as_ref()))
     }
-    pub fn parse(uri: &str) -> Option<Self> {
-        let mut parser = Parser::new(uri.as_bytes());
-        while parser.state() != State::EOF {
+    pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
+        while parser.state() != State::Eof {
             let &byte = unsafe { parser.get_unchecked(parser.position()) };
             if byte == b':' {
                 let scheme = unsafe { parser.get_unchecked(..parser.position()) };
-                return Some(Self::new(scheme))
+                return Some(Self::new(scheme));
             }
             parser.increment()
         }

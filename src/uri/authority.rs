@@ -8,52 +8,37 @@ impl Authority {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
         Self(std::sync::Arc::from(value.as_ref()))
     }
-    pub fn parse(uri: &str) -> Option<Self> {
-        let mut parser = Parser::new(uri.as_bytes());
-        let mut start = 'start: {
-            while parser.state() != State::EOF {
-                let &byte = unsafe { parser.get_unchecked(parser.position()) };
+    pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
+        let start = 'start: {
+            let mut colon = false;
+            let mut slash = false;
+            while parser.state() != State::Eof {
+                let byte = parser.get_byte();
                 if byte == b':' {
-                    parser.increment();
-                    let &slash = unsafe { parser.get_unchecked(parser.position()) };
-                    if slash == b'/' {
-                        parser.increment();
-                        let &slash = unsafe { parser.get_unchecked(parser.position()) };
-                        if slash == b'/' {
-                            parser.increment();
-                            break 'start parser.position();
-                        } else {
-                            parser.decrement()
-                        }
-                    } else {
-                        parser.decrement()
-                    }
+                    colon = true;
+                }
+                if byte == b'/' && colon {
+                    slash = true;
+                }
+                if byte == b'/' && slash {
+                    parser.skip(2);
+                    break 'start parser.position();
                 }
                 parser.increment()
             }
             0
         };
-        let mut end = 'end: {
-            while parser.state() != State::EOF {
-                let &byte = unsafe { parser.get_unchecked(parser.position()) };
-                if byte == b'/' || byte == b'?' || byte == b'#' {
-                    break 'end parser.position()
+        let end = 'end: {
+            while parser.state() != State::Eof {
+                let byte = parser.get_byte();
+                if byte == b'/' || byte == b'?' || byte == b'#' && start != 0 {
+                    break 'end parser.position();
                 }
                 parser.increment()
             }
             0
         };
-        match (start, end) {
-            (0, 0) => None,
-            (start, 0) if start != 0 => {
-                let authority = unsafe { parser.get_unchecked(start..) };
-                Some(Self::new(authority))
-            }
-            (start, end) => {
-                let authority = unsafe { parser.get_unchecked(start..end) };
-                Some(Self::new(authority))
-            }
-        }
+        super::match_start_and_end!(start, end, parser)
     }
 }
 

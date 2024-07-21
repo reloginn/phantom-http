@@ -1,3 +1,4 @@
+use super::parser::{Parser, State};
 use std::sync::Arc;
 
 /// path          = path-abempty    ; begins with "/" or is empty
@@ -18,47 +19,28 @@ use std::sync::Arc;
 ///
 /// pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Path(Arc<str>);
+pub struct Path(Arc<[u8]>);
 
 impl Path {
-    pub(crate) fn new(value: &str) -> Self {
-        Self(std::sync::Arc::from(value))
+    pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
+        Self(Arc::from(value.as_ref()))
     }
-    pub fn parse(uri: &str) -> Option<Self> {
-        let path = uri
-            .split_once("//")
-            .and_then(|(_, authority_and_maybe_path)| {
-                let len = authority_and_maybe_path.len();
-                let mut start = 0;
-                let mut end = 0;
-                for (index, &byte) in authority_and_maybe_path.as_bytes().iter().enumerate() {
-                    if byte == b'/' && start == 0 {
-                        start = index;
-                    } else if byte == b'/' && index == len {
-                        return None;
-                    }
-                    if byte == b'?' || byte == b'#' && start != 0 && end == 0 {
-                        end = index;
-                    } else if byte == b'?' || byte == b'#' && start == 0 {
-                        return None;
-                    }
-                }
-                match (start, end) {
-                    (0, 0) => None,
-                    (start, 0) if start != 0 => Some(&authority_and_maybe_path[start..]),
-                    (start, end) => Some(&authority_and_maybe_path[start..end]),
-                }
-            })
-            .or(uri.split_once(':').and_then(|(_, maybe_path)| {
-                if !maybe_path.starts_with("//") {
-                    // if `maybe_path` does not start with `//`, then it is indeed path
-                    Some(maybe_path)
-                } else {
-                    // ...otherwise it is Authority, in which case `path` must be None
-                    None
-                }
-            }));
-        path.map(Self::new)
+    pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
+        let start = parser.position();
+        while parser.state() != State::Eof {
+            let &byte = unsafe { parser.get_unchecked(parser.position()) };
+            if byte == b'?' || byte == b'#' {
+                let path = unsafe { parser.get_unchecked(start..parser.position()) };
+                return Some(Self::new(path));
+            }
+            if byte == b':' {
+                let path = unsafe { parser.get_unchecked(start..) };
+                return Some(Self::new(path));
+            }
+            parser.increment()
+        }
+        // FIXME: if there is no `?` or `#` but there is Path, it throws `None`
+        None
     }
 }
 
@@ -66,7 +48,7 @@ impl std::ops::Deref for Path {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 

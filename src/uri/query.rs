@@ -1,19 +1,39 @@
+use super::{
+    match_start_and_end,
+    parser::{Parser, State},
+};
+
 /// query       = *( pchar / "/" / "?" )
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Query(std::sync::Arc<str>);
+pub struct Query(std::sync::Arc<[u8]>);
 
 impl Query {
-    pub(crate) fn new(value: &str) -> Self {
-        Self(std::sync::Arc::from(value))
+    pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
+        Self(std::sync::Arc::from(value.as_ref()))
     }
-    pub fn parse(uri: &str) -> Option<Self> {
-        let query = uri.split_once('?').map(|(_, query_and_maybe_fragment)| {
-            query_and_maybe_fragment
-                .split_once('#')
-                .map(|(query, _)| query)
-                .unwrap_or(query_and_maybe_fragment)
-        })?;
-        Some(Self::new(query))
+    pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
+        let start = 'start: {
+            while parser.state() != State::Eof {
+                let byte = parser.get_byte();
+                if byte == b'?' {
+                    parser.skip(1);
+                    break 'start parser.position();
+                }
+                parser.increment()
+            }
+            0
+        };
+        let end = 'end: {
+            while parser.state() != State::Eof {
+                let byte = parser.get_byte();
+                if byte == b'#' && start != 0 {
+                    break 'end parser.position();
+                }
+                parser.increment()
+            }
+            0
+        };
+        match_start_and_end!(start, end, parser)
     }
 }
 
@@ -21,6 +41,6 @@ impl std::ops::Deref for Query {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
