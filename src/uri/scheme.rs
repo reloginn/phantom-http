@@ -2,12 +2,11 @@ use super::parser::{Parser, State};
 
 /// scheme = ALPHA *( ALPHA / DIGIT / «+» / «-» / «.» )
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Scheme(std::sync::Arc<str>);
+pub struct Scheme(std::sync::Arc<[u8]>);
 
 impl Scheme {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        let s = unsafe { std::str::from_utf8_unchecked(value.as_ref()) };
-        Self(std::sync::Arc::from(s))
+        Self(std::sync::Arc::from(value.as_ref()))
     }
     pub fn parse(uri: &str) -> Option<Self> {
         let mut parser = Parser::new(uri.as_bytes());
@@ -27,7 +26,7 @@ impl std::ops::Deref for Scheme {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 
