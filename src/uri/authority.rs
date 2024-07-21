@@ -1,5 +1,5 @@
-use compact_str::CompactString;
 use super::parser::{Parser, State};
+use compact_str::CompactString;
 
 /// authority = [ userinfo «@» ] host [ «:» port ]
 #[derive(Clone, Debug, Eq, PartialEq)]

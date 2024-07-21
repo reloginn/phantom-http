@@ -1,5 +1,5 @@
-use compact_str::CompactString;
 use super::parser::{Parser, State};
+use compact_str::CompactString;
 
 /// scheme = ALPHA *( ALPHA / DIGIT / «+» / «-» / «.» )
 #[derive(Debug, Clone, Eq, PartialEq)]

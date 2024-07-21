@@ -1,5 +1,5 @@
-use compact_str::CompactString;
 use super::parser::{Parser, State};
+use compact_str::CompactString;
 
 /// fragment    = *( pchar / "/" / "?" )
 #[derive(Clone, Debug, Eq, PartialEq)]

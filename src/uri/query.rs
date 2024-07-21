@@ -1,8 +1,8 @@
-use compact_str::CompactString;
 use super::{
     match_start_and_end,
     parser::{Parser, State},
 };
+use compact_str::CompactString;
 
 /// query       = *( pchar / "/" / "?" )
 #[derive(Clone, Debug, Eq, PartialEq)]

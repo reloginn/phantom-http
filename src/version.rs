@@ -1,11 +1,16 @@
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Version {
     HTTP09,
     HTTP10,
     HTTP11,
     HTTP2,
-    #[default]
     HTTP3,
+}
+
+impl Default for Version {
+    fn default() -> Self {
+        Self::HTTP3
+    }
 }
 
 impl From<&[u8]> for Version {
@@ -17,9 +22,16 @@ impl From<&[u8]> for Version {
             b"HTTP/1.1" => HTTP11,
             b"HTTP/2.0" => HTTP2,
             b"HTTP/3.0" => HTTP3,
-            _ => panic!("unknown HTTP version"),
+            other => version_from_bytes_fail(other),
         }
     }
+}
+
+#[inline(never)]
+#[cold]
+#[track_caller]
+fn version_from_bytes_fail(version: &[u8]) -> ! {
+    panic!("unknown http version: {version:?}")
 }
 
 impl From<String> for Version {

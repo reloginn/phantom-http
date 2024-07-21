@@ -4,8 +4,14 @@ pub mod map;
 pub mod name;
 pub mod value;
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Default)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct ByteStr(Bytes);
+
+impl Default for ByteStr {
+    fn default() -> Self {
+        Self::empty()
+    }
+}
 
 impl ByteStr {
     pub const fn empty() -> ByteStr {
