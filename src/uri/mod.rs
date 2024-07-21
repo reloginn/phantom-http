@@ -29,7 +29,7 @@ macro_rules! match_start_and_end {
 
 macro_rules! to_compact {
     ($value:expr) => {{
-        let s = unsafe { std::str::from_utf8_unchecked(value.as_ref()) };
+        let s = unsafe { std::str::from_utf8_unchecked($value.as_ref()) };
         compact_str::CompactString::new(s)
     }};
 }
