@@ -1,12 +1,14 @@
+use compact_str::CompactString;
 use super::parser::{Parser, State};
 
 /// fragment    = *( pchar / "/" / "?" )
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Fragment(std::sync::Arc<[u8]>);
+pub struct Fragment(CompactString);
 
 impl Fragment {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        Self(std::sync::Arc::from(value.as_ref()))
+        let compact = super::to_compact!(value);
+        Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
         while parser.state() != State::Eof {
@@ -26,6 +28,6 @@ impl std::ops::Deref for Fragment {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
+        self.0.as_ref()
     }
 }

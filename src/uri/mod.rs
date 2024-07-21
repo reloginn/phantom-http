@@ -27,7 +27,15 @@ macro_rules! match_start_and_end {
     };
 }
 
+macro_rules! to_compact {
+    ($value:expr) => {{
+        let s = unsafe { std::str::from_utf8_unchecked(value.as_ref()) };
+        compact_str::CompactString::new(s)
+    }};
+}
+
 pub(crate) use match_start_and_end;
+pub(crate) use to_compact;
 
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]

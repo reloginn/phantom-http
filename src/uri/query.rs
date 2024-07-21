@@ -1,3 +1,4 @@
+use compact_str::CompactString;
 use super::{
     match_start_and_end,
     parser::{Parser, State},
@@ -5,11 +6,12 @@ use super::{
 
 /// query       = *( pchar / "/" / "?" )
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Query(std::sync::Arc<[u8]>);
+pub struct Query(CompactString);
 
 impl Query {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        Self(std::sync::Arc::from(value.as_ref()))
+        let compact = super::to_compact!(value);
+        Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
         let start = 'start: {
@@ -41,6 +43,6 @@ impl std::ops::Deref for Query {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
+        self.0.as_ref()
     }
 }

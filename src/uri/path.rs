@@ -1,5 +1,5 @@
 use super::parser::{Parser, State};
-use std::sync::Arc;
+use compact_str::CompactString;
 
 /// path          = path-abempty    ; begins with "/" or is empty
 ///               / path-absolute   ; begins with "/" but not "//"
@@ -19,22 +19,23 @@ use std::sync::Arc;
 ///
 /// pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Path(Arc<[u8]>);
+pub struct Path(CompactString);
 
 impl Path {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        Self(Arc::from(value.as_ref()))
+        let compact = super::to_compact!(value);
+        Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
         let start = parser.position();
         while parser.state() != State::Eof {
-            let &byte = unsafe { parser.get_unchecked(parser.position()) };
+            let byte = parser.get_byte();
             if byte == b'?' || byte == b'#' {
                 let path = unsafe { parser.get_unchecked(start..parser.position()) };
                 return Some(Self::new(path));
             }
             if byte == b':' {
-                let path = unsafe { parser.get_unchecked(start..) };
+                let path = unsafe { parser.get_unchecked(parser.position()..) };
                 return Some(Self::new(path));
             }
             parser.increment()
@@ -48,7 +49,7 @@ impl std::ops::Deref for Path {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
+        self.0.as_ref()
     }
 }
 

@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 bytes = "1.6.1"
+compact_str = "0.8.0"

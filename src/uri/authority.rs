@@ -1,12 +1,14 @@
+use compact_str::CompactString;
 use super::parser::{Parser, State};
 
 /// authority = [ userinfo «@» ] host [ «:» port ]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Authority(std::sync::Arc<[u8]>);
+pub struct Authority(CompactString);
 
 impl Authority {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        Self(std::sync::Arc::from(value.as_ref()))
+        let compact = super::to_compact!(value);
+        Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
         let start = 'start: {
@@ -46,7 +48,7 @@ impl std::ops::Deref for Authority {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
+        self.0.as_ref()
     }
 }
 
