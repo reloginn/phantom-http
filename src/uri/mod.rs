@@ -9,6 +9,7 @@ pub mod fragment;
 pub mod path;
 pub mod query;
 pub mod scheme;
+mod parser;
 
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -48,5 +49,22 @@ impl Uri {
     }
     pub fn builder<'a>() -> UriBuilder<'a> {
         UriBuilder::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::ops::Deref;
+    use crate::uri::Uri;
+
+    #[test]
+    fn parse_rfc_uri() {
+        const URI: &str = "https://datatracker.ietf.org/doc/html/rfc3986";
+        let uri = Uri::parse_exact(URI);
+        assert_eq!(uri.scheme().unwrap().deref(), "https");
+        assert_eq!(uri.authority().unwrap().deref(), "datatracker.ietf.org");
+        assert_eq!(uri.path().unwrap().deref(), "/doc/html/rfc3986");
+        assert_eq!(uri.query(), None);
+        assert_eq!(uri.fragment(), None);
     }
 }
