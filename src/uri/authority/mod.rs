@@ -1,5 +1,11 @@
 use super::parser::{Parser, State};
 use compact_str::CompactString;
+use components::Components;
+
+pub mod components;
+pub mod host;
+pub mod port;
+pub mod userinfo;
 
 /// authority = [ userinfo «@» ] host [ «:» port ]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -42,11 +48,13 @@ impl Authority {
         };
         super::match_start_and_end!(start, end, parser)
     }
+    pub fn to_components(&self) -> Components {
+        Components::new(self)
+    }
 }
 
 impl std::ops::Deref for Authority {
     type Target = str;
-
     fn deref(&self) -> &Self::Target {
         self.0.as_ref()
     }

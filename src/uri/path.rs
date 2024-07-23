@@ -1,4 +1,8 @@
-use super::parser::{Parser, State};
+use super::{
+    get_unchecked,
+    parser::{Parser, State},
+    to_compact,
+};
 use compact_str::CompactString;
 
 /// path          = path-abempty    ; begins with "/" or is empty
@@ -23,25 +27,26 @@ pub struct Path(CompactString);
 
 impl Path {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        let compact = super::to_compact!(value);
+        let compact = to_compact!(value);
         Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
-        let start = parser.position();
+        let from = parser.position();
         while parser.state() != State::Eof {
             let byte = parser.get_byte();
             if byte == b'?' || byte == b'#' {
-                let path = unsafe { parser.get_unchecked(start..parser.position()) };
-                return Some(Self::new(path));
+                return Some(get_unchecked!(parser, from, parser.position()));
             }
             if byte == b':' {
-                let path = unsafe { parser.get_unchecked(parser.position()..) };
-                return Some(Self::new(path));
+                return Some(get_unchecked!(parser, parser.position()));
             }
             parser.increment()
         }
-        // FIXME: if there is no `?` or `#` but there is Path, it throws `None`
-        None
+        if from == parser.eof() {
+            None
+        } else {
+            Some(get_unchecked!(parser, from))
+        }
     }
 }
 
