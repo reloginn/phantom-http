@@ -1,6 +1,5 @@
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Method {
-    #[default]
     GET,
     HEAD,
     POST,
@@ -9,6 +8,12 @@ pub enum Method {
     CONNECT,
     OPTIONS,
     TRACE,
+}
+
+impl Default for Method {
+    fn default() -> Self {
+        Self::GET
+    }
 }
 
 impl From<&[u8]> for Method {
@@ -23,9 +28,15 @@ impl From<&[u8]> for Method {
             b"CONNECT" => CONNECT,
             b"OPTIONS" => OPTIONS,
             b"TRACE" => TRACE,
-            _ => panic!("unknown HTTP method"),
+            other => method_from_bytes_fail(other),
         }
     }
+}
+#[inline(never)]
+#[cold]
+#[track_caller]
+fn method_from_bytes_fail(method: &[u8]) -> ! {
+    panic!("unknown http method: {method:?}")
 }
 
 impl From<String> for Method {

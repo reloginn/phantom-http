@@ -3,8 +3,14 @@ use std::collections::HashMap;
 
 const DEFAULT_MAP_CAPACITY: usize = 128;
 
-#[derive(Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HeaderMap(HashMap<HeaderName, HeaderValue>);
+
+impl Default for HeaderMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl HeaderMap {
     pub fn new() -> Self {

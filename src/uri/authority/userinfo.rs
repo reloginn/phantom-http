@@ -1,24 +1,22 @@
-use super::{
+use crate::uri::{
     macros::{get_unchecked, to_compact},
     parser::{Parser, State},
 };
 use compact_str::CompactString;
 
-/// fragment    = *( pchar / "/" / "?" )
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Fragment(CompactString);
+pub struct UserInfo(CompactString);
 
-impl Fragment {
-    pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
+impl UserInfo {
+    fn new(value: impl AsRef<[u8]>) -> Self {
         let compact = to_compact!(value);
         Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
         while parser.state() != State::Eof {
             let byte = parser.get_byte();
-            if byte == b'#' {
-                parser.skip(1);
-                return Some(get_unchecked!(parser, parser.position()));
+            if byte == b'@' {
+                return Some(get_unchecked!(parser, parser.position(), !));
             }
             parser.increment()
         }
@@ -26,10 +24,16 @@ impl Fragment {
     }
 }
 
-impl std::ops::Deref for Fragment {
+impl std::ops::Deref for UserInfo {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
         self.0.as_ref()
+    }
+}
+
+impl std::fmt::Display for UserInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self)
     }
 }
