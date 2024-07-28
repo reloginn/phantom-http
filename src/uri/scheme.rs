@@ -1,21 +1,34 @@
-use super::parser::{Parser, State};
+use super::{
+    macros::{get_unchecked, to_compact},
+    parser::{Parser, State},
+};
 use compact_str::CompactString;
 
+#[derive(Clone, Eq, PartialEq, Debug)]
+enum Repr {
+    Http,
+    Https,
+    Other(CompactString),
+}
+
 /// scheme = ALPHA *( ALPHA / DIGIT / «+» / «-» / «.» )
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Scheme(CompactString);
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Scheme(Repr);
 
 impl Scheme {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        let compact = super::to_compact!(value);
-        Self(compact)
+        let repr = match value.as_ref() {
+            b"http" => Repr::Http,
+            b"https" => Repr::Https,
+            other => Repr::Other(to_compact!(other)),
+        };
+        Self(repr)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
         while parser.state() != State::Eof {
             let byte = parser.get_byte();
             if byte == b':' {
-                let scheme = unsafe { parser.get_unchecked(..parser.position()) };
-                return Some(Self::new(scheme));
+                return Some(get_unchecked!(parser, parser.position(), !));
             }
             parser.increment()
         }
@@ -27,7 +40,11 @@ impl std::ops::Deref for Scheme {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        self.0.as_ref()
+        match &self.0 {
+            Repr::Http => "http",
+            Repr::Https => "https",
+            Repr::Other(other) => other.as_ref(),
+        }
     }
 }
 

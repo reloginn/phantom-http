@@ -1,7 +1,6 @@
 use crate::uri::{
-    get_unchecked,
+    macros::{get_unchecked, to_compact},
     parser::{Parser, State},
-    to_compact,
 };
 use compact_str::CompactString;
 

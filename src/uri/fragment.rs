@@ -1,4 +1,7 @@
-use super::parser::{Parser, State};
+use super::{
+    macros::{get_unchecked, to_compact},
+    parser::{Parser, State},
+};
 use compact_str::CompactString;
 
 /// fragment    = *( pchar / "/" / "?" )
@@ -7,7 +10,7 @@ pub struct Fragment(CompactString);
 
 impl Fragment {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        let compact = super::to_compact!(value);
+        let compact = to_compact!(value);
         Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
@@ -15,8 +18,7 @@ impl Fragment {
             let byte = parser.get_byte();
             if byte == b'#' {
                 parser.skip(1);
-                let fragment = unsafe { parser.get_unchecked(parser.position()..) };
-                return Some(Self::new(fragment));
+                return Some(get_unchecked!(parser, parser.position()));
             }
             parser.increment()
         }

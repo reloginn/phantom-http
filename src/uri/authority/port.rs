@@ -1,4 +1,7 @@
-use crate::uri::{get_unchecked, parser::Parser, to_compact};
+use crate::uri::{
+    macros::{get_unchecked, to_compact},
+    parser::Parser,
+};
 use compact_str::CompactString;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

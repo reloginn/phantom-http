@@ -1,5 +1,5 @@
 use super::{
-    match_start_and_end,
+    macros::{match_start_and_end, to_compact},
     parser::{Parser, State},
 };
 use compact_str::CompactString;
@@ -10,7 +10,7 @@ pub struct Query(CompactString);
 
 impl Query {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        let compact = super::to_compact!(value);
+        let compact = to_compact!(value);
         Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {

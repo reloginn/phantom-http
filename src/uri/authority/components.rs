@@ -1,14 +1,16 @@
-use super::{host::Host, port::Port, userinfo::UserInfo};
-use crate::uri::parser::Parser;
+use super::{
+    super::parser::Parser,
+    {host::Host, port::Port, userinfo::UserInfo},
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Components {
+pub struct AuthorityComponents {
     userinfo: Option<UserInfo>,
     host: Option<Host>,
     port: Option<Port>,
 }
 
-impl Components {
+impl AuthorityComponents {
     pub(super) fn new(full: &str) -> Self {
         let mut parser = Parser::new(full.as_bytes());
         Self {
@@ -34,5 +36,8 @@ impl Components {
     }
     pub fn port_str(&self) -> Option<&str> {
         self.port.as_deref()
+    }
+    pub fn port_u16(&self) -> Option<u16> {
+        self.port_str().and_then(|s| s.parse::<u16>().ok())
     }
 }

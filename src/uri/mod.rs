@@ -6,52 +6,11 @@ pub use self::{
 pub mod authority;
 pub mod builder;
 pub mod fragment;
+pub(crate) mod macros;
 pub(crate) mod parser;
 pub mod path;
 pub mod query;
 pub mod scheme;
-
-macro_rules! match_start_and_end {
-    ($start:expr, $end:expr, $parser:expr) => {
-        match ($start, $end) {
-            (0, 0) => None,
-            (start, 0) if start != 0 => {
-                let value = unsafe { $parser.get_unchecked(start..) };
-                Some(Self::new(value))
-            }
-            (start, end) => {
-                let value = unsafe { $parser.get_unchecked(start..end) };
-                Some(Self::new(value))
-            }
-        }
-    };
-}
-
-macro_rules! to_compact {
-    ($value:expr) => {{
-        let s = unsafe { std::str::from_utf8_unchecked($value.as_ref()) };
-        compact_str::CompactString::new(s)
-    }};
-}
-
-macro_rules! get_unchecked {
-    ($parser:expr, $from:expr) => {{
-        let value = unsafe { $parser.get_unchecked($from..) };
-        Self::new(value)
-    }};
-    ($parser:expr, $to:expr, $never:ty) => {{
-        let value = unsafe { $parser.get_unchecked(..$to) };
-        Self::new(value)
-    }};
-    ($parser:expr, $from:expr, $to:expr) => {{
-        let value = unsafe { $parser.get_unchecked($from..$to) };
-        Self::new(value)
-    }};
-}
-
-pub(crate) use get_unchecked;
-pub(crate) use match_start_and_end;
-pub(crate) use to_compact;
 
 /// See [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986) for more details.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -109,6 +68,14 @@ impl Uri {
     }
 }
 
+impl std::str::FromStr for Uri {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parse_exact(s))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Uri;
@@ -134,6 +101,6 @@ mod tests {
             .unwrap();
         assert_eq!(components.userinfo_str(), Some("userinfo"));
         assert_eq!(components.host_str(), Some("host.org"));
-        assert_eq!(components.port_str(), Some("443"));
+        assert_eq!(components.port_u16(), Some(443));
     }
 }

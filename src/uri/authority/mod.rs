@@ -1,6 +1,9 @@
-use super::parser::{Parser, State};
+use super::{
+    macros::{match_start_and_end, to_compact},
+    parser::{Parser, State},
+};
 use compact_str::CompactString;
-use components::Components;
+use components::AuthorityComponents;
 
 pub mod components;
 pub mod host;
@@ -13,7 +16,7 @@ pub struct Authority(CompactString);
 
 impl Authority {
     pub(crate) fn new(value: impl AsRef<[u8]>) -> Self {
-        let compact = super::to_compact!(value);
+        let compact = to_compact!(value);
         Self(compact)
     }
     pub(super) fn parse(parser: &mut Parser) -> Option<Self> {
@@ -46,10 +49,10 @@ impl Authority {
             }
             0
         };
-        super::match_start_and_end!(start, end, parser)
+        match_start_and_end!(start, end, parser)
     }
-    pub fn to_components(&self) -> Components {
-        Components::new(self)
+    pub fn to_components(&self) -> AuthorityComponents {
+        AuthorityComponents::new(self)
     }
 }
 
