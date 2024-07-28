@@ -1,6 +1,6 @@
 [package]
 name = "phantom-http"
-version = "0.2.0-rc3"
+version = "0.2.0g"
 edition = "2021"
 
 [dependencies]
