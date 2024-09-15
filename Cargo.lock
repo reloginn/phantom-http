@@ -13,4 +13,10 @@ name = "phantom-http"
 version = "0.3.0"
 dependencies = [
  "bytes",
+ "phantom-uri",
 ]
+
+[[package]]
+name = "phantom-uri"
+version = "0.1.0-dev"
+source = "git+https://github.com/reloginn/phantom-uri#06bd2f20208e92bffdcb4776cb2a1480de78113d"

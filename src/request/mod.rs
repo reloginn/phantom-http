@@ -1,4 +1,5 @@
-use crate::{header::map::HeaderMap, method::Method, uri::Uri, version::Version};
+use crate::{header::map::HeaderMap, method::Method, version::Version};
+use phantom_uri::Uri;
 use builder::RequestBuilder;
 
 pub mod builder;
